@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF"
+    tools:context=".SplashScreen">
+
+    <ImageView
+        android:id="@+id/app_logo"
+        android:layout_width="@dimen/_200sdp"
+        android:layout_height="@dimen/_200sdp"
+        android:src="@drawable/medswap_logo"
+        android:contentDescription="@string/this_is_a_logo" />
+
+    <TextView
+        android:id="@+id/app_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/_10sdp"
+        android:fontFamily="@font/fira_sans_extra_condensed_extrabold"
+        android:text="@string/app_name"
+        android:textColor="@color/orange"
+        android:textSize="@dimen/_48sdp" />
+
+</LinearLayout>

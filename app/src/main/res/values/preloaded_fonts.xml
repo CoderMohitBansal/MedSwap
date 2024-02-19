@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="preloaded_fonts" translatable="false">
+        <item>@font/antic</item>
+        <item>@font/fira_sans_extra_condensed_extrabold</item>
+        <item>@font/poor_story</item>
+    </array>
+</resources>

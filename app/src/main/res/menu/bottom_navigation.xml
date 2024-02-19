@@ -1,0 +1,28 @@
+<!-- res/menu/bottom_navigation_menu.xml -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_home"
+        android:icon="@drawable/home_icon"
+        app:showAsAction="always"
+        android:title="" />
+
+    <item
+        android:id="@+id/action_search"
+        android:icon="@drawable/search_icon"
+        app:showAsAction="always"
+        android:title="" />
+
+    <item
+        android:id="@+id/action_scan"
+        android:icon="@drawable/camera_icon"
+        app:showAsAction="always"
+        android:title="" />
+
+    <item
+        android:id="@+id/action_user"
+        android:icon="@drawable/user_icon"
+        app:showAsAction="always"
+        android:title="" />
+</menu>

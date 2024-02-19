@@ -1,0 +1,12 @@
+<!-- res/drawable/background_outline.xml -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape>
+            <solid android:color="@android:color/transparent"/>
+            <stroke
+                android:color="#A6A6A7"
+            android:width="1dp"/>
+            <corners android:radius="4dp"/>
+        </shape>
+    </item>
+</layer-list>

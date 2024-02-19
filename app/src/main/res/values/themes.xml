@@ -1,0 +1,12 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.MedSwap" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your light theme here. -->
+        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="colorPrimary">#F97F01</item>
+        <item name="colorSecondary">#FF9D37</item>
+        <item name="android:colorControlHighlight">#F97F01</item>
+    </style>
+
+    <style name="Theme.MedSwap" parent="Base.Theme.MedSwap" />
+</resources>

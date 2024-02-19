@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1089823986332",
+    "project_id": "medswap-16c4b",
+    "storage_bucket": "medswap-16c4b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1089823986332:android:e0a711adb8a5c10b85d359",
+        "android_client_info": {
+          "package_name": "com.example.medswap"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBcXhtoKmW9X29PxsvQrEkXPyOMfD21CtA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
