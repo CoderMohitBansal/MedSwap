@@ -3,13 +3,12 @@ package com.example.medswap;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
-import android.content.res.ColorStateList;
 import android.os.Bundle;
 
-import com.example.medswap.SIGNUP.HomeFragment;
-import com.example.medswap.SIGNUP.ScanFragment;
-import com.example.medswap.SIGNUP.SearchFragment;
-import com.example.medswap.SIGNUP.UserFragment;
+import com.example.medswap.Fragments.HomeFragment;
+import com.example.medswap.Fragments.ScanFragment;
+import com.example.medswap.Fragments.SearchFragment;
+import com.example.medswap.Fragments.UserFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class HomeActivity extends AppCompatActivity {
