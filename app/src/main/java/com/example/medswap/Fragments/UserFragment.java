@@ -1,66 +1,111 @@
 package com.example.medswap.Fragments;
 
+import android.content.Intent;
 import android.os.Bundle;
-
 import androidx.fragment.app.Fragment;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.NumberPicker;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
+import com.blogspot.atifsoftwares.animatoolib.Animatoo;
+import com.example.medswap.MainActivity;
 import com.example.medswap.R;
+import com.google.firebase.auth.FirebaseAuth;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link UserFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
+import java.util.Objects;
+
 public class UserFragment extends Fragment {
-
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    NumberPicker height;
+    NumberPicker weight;
+    TextView answerTextview;
+    ProgressBar pg;
 
     public UserFragment() {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment UserFragment.
-     */
-    // TODO: Rename and change types and number of parameters
     public static UserFragment newInstance(String param1, String param2) {
-        UserFragment fragment = new UserFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
+        return new UserFragment();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_user, container, false);
+        View view = inflater.inflate(R.layout.fragment_user, container, false);
+        height = view.findViewById(R.id.heightPicker);
+        weight = view.findViewById(R.id.weightPicker);
+        answerTextview = view.findViewById(R.id.answerBMI);
+        pg = view.findViewById(R.id.progress_bar_logout);
+
+        view.findViewById(R.id.logout_btn).setOnClickListener(view1 -> {
+            pg.setVisibility(View.VISIBLE);
+            logout();
+        });
+
+        // Initialize NumberPickers
+        height.setMinValue(100);
+        height.setMaxValue(250);
+        weight.setMinValue(30);
+        weight.setMaxValue(200);
+
+        height.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
+            @Override
+            public void onValueChange(NumberPicker numberPicker, int i, int i1) {
+                calculateBMI();
+            }
+        });
+
+        weight.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
+            @Override
+            public void onValueChange(NumberPicker numberPicker, int i, int i1) {
+                calculateBMI();
+            }
+        });
+
+        return view;
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+    }
+
+    private void calculateBMI() {
+        double h = height.getValue() / 100.0;
+        double w = weight.getValue();
+
+        if (h == 0) {
+            return;
+        }
+
+        double bmiValue = w / (h * h);
+
+        String msgToDisplay = String.format("%.2f\nConsidered: %s", bmiValue, getHealthMessage(bmiValue));
+        answerTextview.setText(msgToDisplay);
+    }
+
+    private String getHealthMessage(double bmi) {
+        if (bmi < 18.5)
+            return "Underweight";
+        else if (bmi < 25.0)
+            return "Healthy";
+        else if (bmi < 30.0)
+            return "Overweight";
+        else
+            return "Obese";
+    }
+
+    private void logout() {
+        try{
+            FirebaseAuth.getInstance().signOut();
+        }catch (Exception ignored){}
+        pg.setVisibility(View.GONE);
+        Intent intent = new Intent(requireContext(), MainActivity.class);
+        startActivity(intent);
+        Animatoo.INSTANCE.animateShrink(requireContext());
     }
 }

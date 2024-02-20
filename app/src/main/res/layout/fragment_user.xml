@@ -20,7 +20,6 @@
             android:gravity="center_horizontal"
             android:orientation="vertical">
 
-
             <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/profile_img_profile"
                 app:shapeAppearanceOverlay="@style/circular"
@@ -52,17 +51,116 @@
                 android:text="mohdayush@gmail.com"
                 android:textSize="@dimen/_14sdp" />
 
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/user_email_id"
+                android:layout_marginStart="@dimen/_10sdp"
+                android:layout_marginTop="@dimen/_40sdp"
+                android:layout_marginEnd="@dimen/_10sdp"
+                android:layout_marginBottom="@dimen/_10sdp"
+                android:foregroundGravity="center"
+                app:cardCornerRadius="@dimen/_8sdp"
+                app:cardElevation="@dimen/_12sdp"
+                app:cardUseCompatPadding="true">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_margin="@dimen/_20sdp"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        style="@android:style/TextAppearance.Material.Headline"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:text="@string/bmi_calculator" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            style="@android:style/TextAppearance.Material.Headline"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/height" />
+
+                        <NumberPicker
+                            android:id="@+id/heightPicker"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/_5sdp" />
+
+                        <TextView
+                            style="@android:style/TextAppearance.Material.Headline"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="cm" />
+
+                        <TextView
+                            style="@android:style/TextAppearance.Material.Headline"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/_15sdp"
+                            android:text="@string/weight" />
+
+                        <NumberPicker
+                            android:id="@+id/weightPicker"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/_5sdp" />
+
+                        <TextView
+                            style="@android:style/TextAppearance.Material.Headline"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="kg" />
+
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/answerBMI"
+                        style="@android:style/TextAppearance.Material.Headline"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:text="" />
+
+                    <ProgressBar
+                        android:id="@+id/progress_bar_logout"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="@dimen/_5sdp"
+                        android:progressTint="#ff4500"
+                        android:visibility="gone" />
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+
+
         </RelativeLayout>
+        
+
+        
     </ScrollView>
 
     <!-- Logout Button CardView at the bottom -->
     <androidx.cardview.widget.CardView
         android:id="@+id/logout_btn"
         app:cardCornerRadius="10dp"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:foregroundGravity="center"
+        android:layout_centerHorizontal="true"
         android:layout_marginStart="15dp"
         android:elevation="@dimen/_12sdp"
         android:layout_marginEnd="15dp"
@@ -72,10 +170,12 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:gravity="center"
-            android:layout_gravity="center"
+            android:paddingStart="@dimen/_30sdp"
+            android:paddingEnd="@dimen/_30sdp"
             android:textStyle="bold"
             android:text="@string/logout"
+            android:gravity="center"
+            android:layout_gravity="center"
             android:textColor="@color/white"
             android:textSize="@dimen/_16sdp" />
     </androidx.cardview.widget.CardView>
