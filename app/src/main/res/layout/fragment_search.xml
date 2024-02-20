@@ -1,14 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context=".Fragments.SearchFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <SearchView
+        android:id="@+id/searchView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="Search Screen" />
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/_20sdp"
+        android:queryHint="@string/search_medicine"
+        android:layout_marginBottom="@dimen/_10sdp"
+        android:background="@drawable/search_view_background"
+        android:queryBackground="@android:color/transparent"
+        android:layout_marginHorizontal="@dimen/_20sdp"/>
+    
+    <ListView
+        android:id="@+id/listView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/_16sdp"
+        android:layout_marginEnd="@dimen/_16sdp"/>
 
-</FrameLayout>
+</LinearLayout>

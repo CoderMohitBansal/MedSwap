@@ -25,4 +25,5 @@
     <string name="bmi_calculator">BMI Calculator</string>
     <string name="height">Height</string>
     <string name="weight">Weight</string>
+    <string name="search_medicine">Search Medicine</string>
 </resources>
