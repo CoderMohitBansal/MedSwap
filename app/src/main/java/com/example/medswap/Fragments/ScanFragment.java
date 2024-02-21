@@ -1,66 +1,211 @@
 package com.example.medswap.Fragments;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
+import android.os.Environment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.camera.core.AspectRatio;
+import androidx.camera.core.Camera;
+import androidx.camera.core.CameraSelector;
+import androidx.camera.core.ImageCapture;
+import androidx.camera.core.ImageCaptureException;
+import androidx.camera.core.Preview;
+import androidx.camera.lifecycle.ProcessCameraProvider;
+import androidx.camera.view.PreviewView;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
 
 import com.example.medswap.R;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link ScanFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
+import java.io.File;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+
 public class ScanFragment extends Fragment {
+    private ImageButton capture, toggleFlash, flipCamera;
+    private PreviewView previewView;
+    private int cameraFacing = CameraSelector.LENS_FACING_BACK;
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private static final int REQUEST_CAMERA_PERMISSION = 100;
 
     public ScanFragment() {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment ScanFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static ScanFragment newInstance(String param1, String param2) {
-        ScanFragment fragment = new ScanFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
+    public static ScanFragment newInstance() {
+        return new ScanFragment();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_scan, container, false);
+        View view = inflater.inflate(R.layout.fragment_scan, container, false);
+        previewView = view.findViewById(R.id.cameraPreview);
+        capture = view.findViewById(R.id.capture);
+        toggleFlash = view.findViewById(R.id.toggleFlash);
+        flipCamera = view.findViewById(R.id.flipCamera);
+
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            // Request camera permission
+            ActivityCompat.requestPermissions(requireActivity(), new String[]{Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSION);
+        } else {
+            startCamera(cameraFacing);
+        }
+        startCamera(cameraFacing);
+        flipCamera.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (cameraFacing == CameraSelector.LENS_FACING_BACK) {
+                    cameraFacing = CameraSelector.LENS_FACING_FRONT;
+                } else {
+                    cameraFacing = CameraSelector.LENS_FACING_BACK;
+                }
+                startCamera(cameraFacing);
+            }
+        });
+
+        return view;
+    }
+
+    public void startCamera(int cameraFacing) {
+        int aspectRatio = aspectRatio(previewView.getWidth(), previewView.getHeight());
+        ListenableFuture<ProcessCameraProvider> listenableFuture = ProcessCameraProvider.getInstance(requireContext());
+
+        listenableFuture.addListener(() -> {
+            try {
+                ProcessCameraProvider cameraProvider = listenableFuture.get();
+
+                Preview preview = new Preview.Builder().setTargetAspectRatio(aspectRatio).build();
+
+                ImageCapture imageCapture = new ImageCapture.Builder()
+                        .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                        .setTargetRotation(previewView.getDisplay().getRotation()).build();
+
+                CameraSelector cameraSelector = new CameraSelector.Builder()
+                        .requireLensFacing(cameraFacing).build();
+
+                cameraProvider.unbindAll();
+
+                Camera camera = cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageCapture);
+
+                capture.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                            // Request storage permission
+                            ActivityCompat.requestPermissions(requireActivity(), new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CAMERA_PERMISSION);
+                        } else {
+                            takePicture(imageCapture);
+                        }
+                    }
+                });
+
+                toggleFlash.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        setFlashIcon(camera);
+                    }
+                });
+
+                preview.setSurfaceProvider(previewView.getSurfaceProvider());
+            } catch (ExecutionException | InterruptedException e) {
+                e.printStackTrace();
+            }
+        }, ContextCompat.getMainExecutor(requireContext()));
+    }
+
+    public void takePicture(ImageCapture imageCapture) {
+        File file = new File(requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES), System.currentTimeMillis() + ".jpg");
+        ImageCapture.OutputFileOptions outputFileOptions = new ImageCapture.OutputFileOptions.Builder(file).build();
+        imageCapture.takePicture(outputFileOptions, Executors.newCachedThreadPool(), new ImageCapture.OnImageSavedCallback() {
+            @Override
+            public void onImageSaved(@NonNull ImageCapture.OutputFileResults outputFileResults) {
+                uploadImageToFirebase(file);
+                requireActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(requireContext(), "Image saved at: " + file.getPath(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+                startCamera(cameraFacing);
+            }
+
+            @Override
+            public void onError(@NonNull ImageCaptureException exception) {
+                requireActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(requireContext(), "Failed to save: " + exception.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+                startCamera(cameraFacing);
+            }
+        });
+    }
+
+    private void setFlashIcon(Camera camera) {
+        if (camera.getCameraInfo().hasFlashUnit()) {
+            if (camera.getCameraInfo().getTorchState().getValue() == 0) {
+                camera.getCameraControl().enableTorch(true);
+                toggleFlash.setImageResource(R.drawable.baseline_flash_off_24);
+            } else {
+                camera.getCameraControl().enableTorch(false);
+                toggleFlash.setImageResource(R.drawable.baseline_flash_on_24);
+            }
+        } else {
+            requireActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(requireContext(), "Flash is not available currently", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+    }
+
+    private int aspectRatio(int width, int height) {
+        double previewRatio = (double) Math.max(width, height) / Math.min(width, height);
+        if (Math.abs(previewRatio - 4.0 / 3.0) <= Math.abs(previewRatio - 16.0 / 9.0)) {
+            return AspectRatio.RATIO_4_3;
+        }
+        return AspectRatio.RATIO_16_9;
+    }
+
+    private void uploadImageToFirebase(File imageFile) {
+        StorageReference storageRef = FirebaseStorage.getInstance().getReference();
+        String imageName = "images/" + System.currentTimeMillis() + ".jpg";
+        StorageReference imageRef = storageRef.child(imageName);
+
+        imageRef.putFile(Uri.fromFile(imageFile))
+                .addOnSuccessListener(taskSnapshot -> {
+                    imageRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                        String downloadUrl = uri.toString();
+                    });
+
+                    if (imageFile.exists()) {
+                        imageFile.delete();
+                    }
+                })
+                .addOnFailureListener(exception -> {
+                    exception.printStackTrace();
+                    requireActivity().runOnUiThread(() -> {
+                        Toast.makeText(requireContext(), "Failed to upload image to Firebase", Toast.LENGTH_SHORT).show();
+                    });
+                })
+                .addOnProgressListener(snapshot -> {
+                    double progress = (100.0 * snapshot.getBytesTransferred()) / snapshot.getTotalByteCount();
+                });
     }
 }

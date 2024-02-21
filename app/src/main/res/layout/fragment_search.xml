@@ -6,22 +6,51 @@
     android:orientation="vertical"
     tools:context=".Fragments.SearchFragment">
 
-    <SearchView
-        android:id="@+id/searchView"
-        android:layout_width="match_parent"
+    <TextView
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="@string/scan_amp_learn"
+        android:textSize="@dimen/_30sdp"
+        android:layout_marginStart="@dimen/_20sdp"
         android:layout_marginTop="@dimen/_20sdp"
-        android:queryHint="@string/search_medicine"
-        android:layout_marginBottom="@dimen/_10sdp"
-        android:background="@drawable/search_view_background"
-        android:queryBackground="@android:color/transparent"
-        android:layout_marginHorizontal="@dimen/_20sdp"/>
-    
-    <ListView
-        android:id="@+id/listView"
-        android:layout_width="match_parent"
+        android:textStyle="bold"
+        android:textColor="@color/orange"/>
+    <TextView
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/_16sdp"
-        android:layout_marginEnd="@dimen/_16sdp"/>
+        android:text="@string/elevate_your_health_iq"
+        android:layout_marginStart="@dimen/_20sdp"
+        android:textSize="@dimen/_14sdp"
+        android:textColor="@color/orange"/>
+
+    <EditText
+        android:id="@+id/searchEditText"
+        android:layout_width="match_parent"
+        android:paddingStart="@dimen/_15sdp"
+        android:paddingEnd="0dp"
+        android:elevation="@dimen/_30sdp"
+        android:textSize="@dimen/_14sdp"
+        android:drawablePadding="5dp"
+        android:layout_marginHorizontal="5dp"
+        android:layout_marginTop="10dp"
+        android:maxLines="1"
+        android:textColorHint="#333"
+        android:layout_marginStart="@dimen/_10sdp"
+        android:layout_marginEnd="@dimen/_10sdp"
+        android:background="@drawable/input_style"
+        android:hint="@string/search"
+        android:textColor="#000"
+        android:drawableEnd="@drawable/searchicon"
+        android:layout_height="wrap_content"
+        android:importantForAutofill="no"
+        android:inputType="textFilter" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/searchBarRecylerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginStart="@dimen/_10sdp"
+        android:layout_marginEnd="@dimen/_10sdp"
+        android:layout_marginTop="@dimen/_10sdp"/>
 
 </LinearLayout>

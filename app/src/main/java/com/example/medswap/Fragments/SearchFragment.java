@@ -3,19 +3,20 @@ package com.example.medswap.Fragments;
 import android.os.Bundle;
 import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SearchView;
+import android.widget.Toast;
+
 import com.example.medswap.R;
 import java.util.ArrayList;
 
 public class SearchFragment extends Fragment {
-    ArrayList<String> user = new ArrayList<>();
-    SearchView searchView;
-    ListView listView;
-
+    EditText searchEditText;
     public SearchFragment() {
         // Required empty public constructor
     }
@@ -34,34 +35,31 @@ public class SearchFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_search, container, false);
-        ini();
-        searchView = view.findViewById(R.id.searchView);
-        listView = view.findViewById(R.id.listView); // Add this line to initialize listView
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_1, user);
-        listView.setAdapter(adapter); // Set the adapter to the listView
+        searchEditText = view.findViewById(R.id.searchEditText);
 
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String s) {
-                if (user.contains(s)) {
-                    // Handle item found
+        searchEditText.setOnTouchListener((v, event) -> {
+            if (event.getAction() == MotionEvent.ACTION_UP) {
+                // Calculate the drawable's right boundary
+                int drawableEndBoundary = v.getRight() - ((EditText) v).getCompoundPaddingEnd();
+
+                // Check if the touch event occurred within the drawable's bounds
+                if (event.getRawX() >= drawableEndBoundary) {
+                    // Handle the click on the drawable end
+                    onDrawableEndClick();
+                    return true;
                 }
-                return false;
             }
-
-            @Override
-            public boolean onQueryTextChange(String s) {
-                adapter.getFilter().filter(s); // Update the adapter with the filtered list
-                return false;
-            }
+            return false;
         });
 
         return view;
     }
 
-    private void ini() {
-        user.add("Mohit");
-        user.add("Rai");
-        // Add more items as needed
+    private void onDrawableEndClick() {
+        // Add your logic for when the drawable end is clicked
+        // For example, open a search dialog or perform a search
+        searchEditText.setFocusable(false);
+        searchEditText.setFocusableInTouchMode(false);
+        Toast.makeText(requireContext(), "Search Button Clicked", Toast.LENGTH_SHORT).show();
     }
 }
