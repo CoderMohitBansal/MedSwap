@@ -1,10 +1,14 @@
 package com.example.medswap.Fragments;
 
+import static android.app.Activity.RESULT_OK;
+
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +16,7 @@ import android.widget.ImageButton;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.camera.core.AspectRatio;
 import androidx.camera.core.Camera;
 import androidx.camera.core.CameraSelector;
@@ -30,6 +35,7 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
 import java.io.File;
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 
@@ -37,7 +43,7 @@ public class ScanFragment extends Fragment {
     private ImageButton capture, toggleFlash, flipCamera;
     private PreviewView previewView;
     private int cameraFacing = CameraSelector.LENS_FACING_BACK;
-
+    private static final int REQUEST_PICK_IMAGE = 101;
     private static final int REQUEST_CAMERA_PERMISSION = 100;
 
     public ScanFragment() {
@@ -74,6 +80,14 @@ public class ScanFragment extends Fragment {
                     cameraFacing = CameraSelector.LENS_FACING_BACK;
                 }
                 startCamera(cameraFacing);
+            }
+        });
+
+        ImageButton selectFromGalleryButton = view.findViewById(R.id.gallery);
+        selectFromGalleryButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                openGallery();
             }
         });
 
@@ -208,4 +222,20 @@ public class ScanFragment extends Fragment {
                     double progress = (100.0 * snapshot.getBytesTransferred()) / snapshot.getTotalByteCount();
                 });
     }
+
+    private void openGallery() {
+        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        startActivityForResult(intent, REQUEST_PICK_IMAGE);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_PICK_IMAGE && resultCode == RESULT_OK && data != null) {
+            Uri selectedImageUri = data.getData();
+            Toast.makeText(requireContext(), Objects.requireNonNull(selectedImageUri).toString(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
 }
