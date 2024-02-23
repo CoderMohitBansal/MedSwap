@@ -28,4 +28,6 @@
     <string name="search_medicine">Search Medicine</string>
     <string name="scan_amp_learn"><![CDATA[Scan & Learn]]></string>
     <string name="elevate_your_health_iq">Elevate Your Health IQ</string>
+    <string name="todo">TODO</string>
+    <string name="recent_search">Recent Search</string>
 </resources>

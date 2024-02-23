@@ -20,6 +20,7 @@
         android:src="@drawable/round_camera_24"
         android:scaleType="centerCrop"
         android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/todo"
         app:tint="#fff" />
 
     <ImageButton
@@ -34,6 +35,7 @@
         android:src="@drawable/gallery_icon"
         android:scaleType="centerCrop"
         android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/todo"
         app:tint="#fff" />
 
     <ImageButton
@@ -47,7 +49,8 @@
         android:layout_marginBottom="10sp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:src="@drawable/baseline_flash_on_24"
-        app:tint="#fff" />
+        app:tint="#fff"
+        android:contentDescription="@string/todo" />
 
     <ImageButton
         android:layout_width="40sp"
@@ -58,6 +61,7 @@
         android:id="@+id/flipCamera"
         android:src="@drawable/round_flip_camera_android_24"
         android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/todo"
         app:tint="#fff" />
 
 </RelativeLayout>

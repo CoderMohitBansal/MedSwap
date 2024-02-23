@@ -9,6 +9,7 @@ import com.example.medswap.Fragments.HomeFragment;
 import com.example.medswap.Fragments.ScanFragment;
 import com.example.medswap.Fragments.SearchFragment;
 import com.example.medswap.Fragments.UserFragment;
+import com.example.medswap.REPO.UserDataSingleton;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class HomeActivity extends AppCompatActivity {

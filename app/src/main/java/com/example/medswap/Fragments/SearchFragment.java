@@ -56,10 +56,7 @@ public class SearchFragment extends Fragment {
     }
 
     private void onDrawableEndClick() {
-        // Add your logic for when the drawable end is clicked
-        // For example, open a search dialog or perform a search
         searchEditText.setFocusable(false);
-        searchEditText.setFocusableInTouchMode(false);
         Toast.makeText(requireContext(), "Search Button Clicked", Toast.LENGTH_SHORT).show();
     }
 }
