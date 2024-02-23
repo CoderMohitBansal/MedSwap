@@ -14,8 +14,6 @@ import android.widget.TextView;
 
 import com.example.medswap.R;
 public class HomeFragment extends Fragment {
-    ImageView applogo;
-    TextView appname;
     public HomeFragment() {
         // Required empty public constructor
     }
@@ -27,12 +25,11 @@ public class HomeFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
-//
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
-
         return view;
     }
 }

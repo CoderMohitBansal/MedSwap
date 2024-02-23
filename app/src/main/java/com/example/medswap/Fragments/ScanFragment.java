@@ -3,8 +3,12 @@ package com.example.medswap.Fragments;
 import static android.app.Activity.RESULT_OK;
 
 import android.Manifest;
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -13,6 +17,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -27,12 +32,15 @@ import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 
 import com.example.medswap.R;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
 import java.io.File;
 import java.util.Objects;
@@ -42,9 +50,11 @@ import java.util.concurrent.Executors;
 public class ScanFragment extends Fragment {
     private ImageButton capture, toggleFlash, flipCamera;
     private PreviewView previewView;
+    private ProgressBar progressBar;
     private int cameraFacing = CameraSelector.LENS_FACING_BACK;
     private static final int REQUEST_PICK_IMAGE = 101;
     private static final int REQUEST_CAMERA_PERMISSION = 100;
+    private StorageReference storageReference;
 
     public ScanFragment() {
         // Required empty public constructor
@@ -62,6 +72,7 @@ public class ScanFragment extends Fragment {
         previewView = view.findViewById(R.id.cameraPreview);
         capture = view.findViewById(R.id.capture);
         toggleFlash = view.findViewById(R.id.toggleFlash);
+        progressBar = view.findViewById(R.id.cameraImgUploadProgressBar);
         flipCamera = view.findViewById(R.id.flipCamera);
 
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
@@ -151,7 +162,7 @@ public class ScanFragment extends Fragment {
                 requireActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(requireContext(), "Image saved at: " + file.getPath(), Toast.LENGTH_SHORT).show();
+//                        Toast.makeText(requireContext(), "Image saved at: " + file.getPath(), Toast.LENGTH_SHORT).show();
                     }
                 });
                 startCamera(cameraFacing);
@@ -169,7 +180,6 @@ public class ScanFragment extends Fragment {
             }
         });
     }
-
     private void setFlashIcon(Camera camera) {
         if (camera.getCameraInfo().hasFlashUnit()) {
             if (camera.getCameraInfo().getTorchState().getValue() == 0) {
@@ -188,7 +198,6 @@ public class ScanFragment extends Fragment {
             });
         }
     }
-
     private int aspectRatio(int width, int height) {
         double previewRatio = (double) Math.max(width, height) / Math.min(width, height);
         if (Math.abs(previewRatio - 4.0 / 3.0) <= Math.abs(previewRatio - 16.0 / 9.0)) {
@@ -197,31 +206,59 @@ public class ScanFragment extends Fragment {
         return AspectRatio.RATIO_16_9;
     }
 
-    private void uploadImageToFirebase(File imageFile) {
-        StorageReference storageRef = FirebaseStorage.getInstance().getReference();
-        String imageName = "images/" + System.currentTimeMillis() + ".jpg";
-        StorageReference imageRef = storageRef.child(imageName);
-
-        imageRef.putFile(Uri.fromFile(imageFile))
-                .addOnSuccessListener(taskSnapshot -> {
-                    imageRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                        String downloadUrl = uri.toString();
-                    });
-
-                    if (imageFile.exists()) {
-                        imageFile.delete();
-                    }
-                })
-                .addOnFailureListener(exception -> {
-                    exception.printStackTrace();
-                    requireActivity().runOnUiThread(() -> {
-                        Toast.makeText(requireContext(), "Failed to upload image to Firebase", Toast.LENGTH_SHORT).show();
-                    });
-                })
-                .addOnProgressListener(snapshot -> {
-                    double progress = (100.0 * snapshot.getBytesTransferred()) / snapshot.getTotalByteCount();
-                });
+    private void showToastOnUiThread(final String message) {
+        requireActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
+
+    private void uploadImageToFirebase(File imageFile) {
+        requireActivity().runOnUiThread(() -> {
+            if (progressBar != null) {
+                progressBar.setVisibility(View.VISIBLE);
+            }
+        });
+
+        if (isNetworkAvailable()) {
+            StorageReference storageRef = FirebaseStorage.getInstance().getReference();
+            String imageName = "images/" + System.currentTimeMillis() + ".jpg";
+            StorageReference imageRef = storageRef.child(imageName);
+
+            imageRef.putFile(Uri.fromFile(imageFile))
+                    .addOnSuccessListener(taskSnapshot -> {
+                        requireActivity().runOnUiThread(() -> {
+                            if (progressBar != null) {
+                                progressBar.setVisibility(View.INVISIBLE);
+                            }
+                        });
+
+                        showToastOnUiThread("Uploaded Successfully");
+                        if (imageFile.exists()) {
+                            imageFile.delete();
+                        }
+                    })
+                    .addOnFailureListener(exception -> {
+                        exception.printStackTrace();
+                        requireActivity().runOnUiThread(() -> {
+                            if (progressBar != null) {
+                                progressBar.setVisibility(View.INVISIBLE);
+                            }
+                            showToastOnUiThread("Failed to upload image to Firebase");
+                        });
+                    });
+        } else {
+            requireActivity().runOnUiThread(() -> {
+                if (progressBar != null) {
+                    progressBar.setVisibility(View.INVISIBLE);
+                }
+                showToastOnUiThread("No internet connection");
+            });
+        }
+    }
+
 
     private void openGallery() {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
@@ -234,8 +271,53 @@ public class ScanFragment extends Fragment {
 
         if (requestCode == REQUEST_PICK_IMAGE && resultCode == RESULT_OK && data != null) {
             Uri selectedImageUri = data.getData();
-            Toast.makeText(requireContext(), Objects.requireNonNull(selectedImageUri).toString(), Toast.LENGTH_SHORT).show();
+
+            if(isNetworkAvailable()){
+                StorageReference storageRef = FirebaseStorage.getInstance().getReference();
+                String imageName = "images/" + System.currentTimeMillis() + ".jpg";
+                StorageReference imageRef = storageRef.child(imageName);
+
+                ProgressDialog uploadDialog = new ProgressDialog(requireContext());
+                uploadDialog.setTitle("Uploading Image");
+                uploadDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+                uploadDialog.setCancelable(false);
+                uploadDialog.show();
+
+                imageRef.putFile(selectedImageUri)
+                        .addOnSuccessListener(taskSnapshot -> {
+                            imageRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                                uploadDialog.dismiss();
+                                Toast.makeText(requireContext(), "Uploaded Successfully", Toast.LENGTH_SHORT).show();
+                            });
+                        })
+                        .addOnFailureListener(exception -> {
+                            exception.printStackTrace();
+                            uploadDialog.dismiss();
+                            Toast.makeText(requireContext(), "Failed to upload image to Firebase", Toast.LENGTH_SHORT).show();
+                        })
+                        .addOnProgressListener(snapshot -> {
+                            double progress = (100.0 * snapshot.getBytesTransferred()) / snapshot.getTotalByteCount();
+                        })
+                        .addOnProgressListener(snapshot -> {
+                            double progress = (100.0 * snapshot.getBytesTransferred()) / snapshot.getTotalByteCount();
+                            int currentProgress = (int) progress;
+                            uploadDialog.setProgress(currentProgress);
+                            uploadDialog.setMessage("Uploading... " + currentProgress + "%");
+                        });
+            }
+            else{
+                Toast.makeText(requireContext(), "No internet connection", Toast.LENGTH_SHORT).show();
+            }
+
         }
     }
 
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager = (ConnectivityManager) requireContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivityManager != null) {
+            NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+            return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+        }
+        return false;
+    }
 }
