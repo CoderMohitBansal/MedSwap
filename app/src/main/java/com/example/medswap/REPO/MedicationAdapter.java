@@ -1,10 +1,15 @@
 package com.example.medswap.REPO;
 
+import static androidx.core.content.ContextCompat.startActivity;
+
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
@@ -47,6 +52,19 @@ public class MedicationAdapter extends RecyclerView.Adapter<MedicationAdapter.Me
         if (medication.combo != null) {
             Combo combo = medication.combo;
         }
+        holder.buyBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String url = medication.Buy;
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setData(Uri.parse(url));
+                if (intent.resolveActivity(context.getPackageManager()) != null) {
+                    context.startActivity(intent);
+                } else {
+                    Toast.makeText(context, "No browser app found", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
     @Override
@@ -72,7 +90,7 @@ public class MedicationAdapter extends RecyclerView.Adapter<MedicationAdapter.Me
     public static class MedicationViewHolder extends RecyclerView.ViewHolder {
         TextView medicineName, medicineConcentration, medicineDescription, medicinePrice;
         TextView comboName;
-        CardView comboLayout;
+        CardView comboLayout, buyBtn;
 
         public MedicationViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -81,7 +99,7 @@ public class MedicationAdapter extends RecyclerView.Adapter<MedicationAdapter.Me
             medicineConcentration = itemView.findViewById(R.id.medicine_concentration);
             medicineDescription = itemView.findViewById(R.id.medicine_description);
             medicinePrice = itemView.findViewById(R.id.medicine_price);
-
+            buyBtn = itemView.findViewById(R.id.buyBtn);
             comboName = itemView.findViewById(R.id.combo_name);
         }
     }
