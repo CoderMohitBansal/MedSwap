@@ -122,6 +122,7 @@ public class SignUpActivity extends AppCompatActivity {
                             Animatoo.INSTANCE.animateInAndOut(SignUpActivity.this);
                         } else
                             Toast.makeText(SignUpActivity.this, "Problem with credentials\nEmail may already be registered or Password is weak!", Toast.LENGTH_SHORT).show();
+
                     });
         } else
             progressBar.setVisibility(View.GONE);

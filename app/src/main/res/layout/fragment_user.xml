@@ -7,6 +7,8 @@
     android:background="#FBFDFC"
     tools:context=".Fragments.UserFragment">
 
+    <include layout="@layout/background_splash_screen"/>
+
     <ScrollView
         android:id="@+id/scrollView"
         android:layout_width="match_parent"

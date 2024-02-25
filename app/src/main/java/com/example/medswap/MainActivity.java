@@ -95,7 +95,8 @@ public class MainActivity extends AppCompatActivity {
         } else if (errorMessage.contains("password is invalid")) {
             Toast.makeText(this, "Invalid Password", Toast.LENGTH_SHORT).show();
         } else {
-            Toast.makeText(this, "Invalid Email/Password", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show();
+            Log.d("app", errorMessage);
         }
     }
 

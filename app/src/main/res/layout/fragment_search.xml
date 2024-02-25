@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".Fragments.SearchFragment">
 
+    <include layout="@layout/background_splash_screen"/>
+
     <TextView
+        android:id="@+id/one"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/scan_amp_learn"
@@ -16,6 +19,8 @@
         android:textStyle="bold"
         android:textColor="@color/orange"/>
     <TextView
+        android:id="@+id/two"
+        android:layout_below="@id/one"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/elevate_your_health_iq"
@@ -24,6 +29,7 @@
         android:textColor="@color/orange"/>
 
     <EditText
+        android:layout_below="@id/two"
         android:id="@+id/searchEditText"
         android:layout_width="match_parent"
         android:paddingStart="@dimen/_15sdp"
@@ -47,10 +53,11 @@
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/searchBarRecylerView"
+        android:layout_below="@id/searchEditText"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginStart="@dimen/_10sdp"
         android:layout_marginEnd="@dimen/_10sdp"
         android:layout_marginTop="@dimen/_10sdp"/>
 
-</LinearLayout>
+</RelativeLayout>

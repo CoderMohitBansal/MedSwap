@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
 import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -29,6 +30,7 @@ import java.util.Objects;
 public class UserFragment extends Fragment {
     TextView fullname;
     TextView email;
+    CardView logoutBtn;
     public UserFragment() {
         // Required empty public constructor
     }
@@ -44,14 +46,26 @@ public class UserFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_user, container, false);
         fullname = view.findViewById(R.id.profile_username);
         email = view.findViewById(R.id.user_email_id);
+        logoutBtn = view.findViewById(R.id.logout_btn);
 
         String username = UserDataSingleton.getInstance().getUsername();
         String emailAddress = UserDataSingleton.getInstance().getEmailAddress();
 
         fullname.setText(username);
         email.setText(emailAddress);
+
+        logoutBtn.setOnClickListener(view1 -> logout());
+
         return view;
     }
+
+    private void logout() {
+        FirebaseAuth.getInstance().signOut();
+        Intent intent = new Intent(requireContext(), MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

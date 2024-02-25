@@ -11,6 +11,7 @@ import com.example.medswap.Fragments.SearchFragment;
 import com.example.medswap.Fragments.UserFragment;
 import com.example.medswap.REPO.UserDataSingleton;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.auth.FirebaseAuth;
 
 public class HomeActivity extends AppCompatActivity {
 
@@ -18,6 +19,8 @@ public class HomeActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+
+        loadUserData();
 
         getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container_home_screen, new HomeFragment()).commit();
 
@@ -37,8 +40,15 @@ public class HomeActivity extends AppCompatActivity {
             }
 
             getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container_home_screen, selectedFragment).commit();
+;
             return true;
         });
 
+    }
+
+    private void loadUserData() {
+        if(FirebaseAuth.getInstance().getCurrentUser() == null)
+            return;
+        UserDataSingleton.getInstance().loadUserData();
     }
 }

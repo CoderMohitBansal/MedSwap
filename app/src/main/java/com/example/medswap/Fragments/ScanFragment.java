@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.view.LayoutInflater;
+import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
@@ -34,8 +35,10 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.example.medswap.R;
+import com.example.medswap.REPO.SharedViewModel;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.firebase.storage.FirebaseStorage;
@@ -82,30 +85,28 @@ public class ScanFragment extends Fragment {
             startCamera(cameraFacing);
         }
         startCamera(cameraFacing);
-        flipCamera.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (cameraFacing == CameraSelector.LENS_FACING_BACK) {
-                    cameraFacing = CameraSelector.LENS_FACING_FRONT;
-                } else {
-                    cameraFacing = CameraSelector.LENS_FACING_BACK;
-                }
-                startCamera(cameraFacing);
+        flipCamera.setOnClickListener(view12 -> {
+            if (cameraFacing == CameraSelector.LENS_FACING_BACK) {
+                cameraFacing = CameraSelector.LENS_FACING_FRONT;
+            } else {
+                cameraFacing = CameraSelector.LENS_FACING_BACK;
             }
+            startCamera(cameraFacing);
         });
 
         ImageButton selectFromGalleryButton = view.findViewById(R.id.gallery);
-        selectFromGalleryButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                openGallery();
-            }
-        });
+        selectFromGalleryButton.setOnClickListener(view1 -> openGallery());
 
         return view;
     }
 
     public void startCamera(int cameraFacing) {
+        int rotation;
+        if (previewView.getDisplay() != null) {
+            rotation = previewView.getDisplay().getRotation();
+        } else {
+            rotation = Surface.ROTATION_0;
+        }
         int aspectRatio = aspectRatio(previewView.getWidth(), previewView.getHeight());
         ListenableFuture<ProcessCameraProvider> listenableFuture = ProcessCameraProvider.getInstance(requireContext());
 
@@ -117,7 +118,7 @@ public class ScanFragment extends Fragment {
 
                 ImageCapture imageCapture = new ImageCapture.Builder()
                         .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
-                        .setTargetRotation(previewView.getDisplay().getRotation()).build();
+                        .setTargetRotation(rotation).build();
 
                 CameraSelector cameraSelector = new CameraSelector.Builder()
                         .requireLensFacing(cameraFacing).build();
@@ -126,24 +127,17 @@ public class ScanFragment extends Fragment {
 
                 Camera camera = cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageCapture);
 
-                capture.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                            // Request storage permission
-                            ActivityCompat.requestPermissions(requireActivity(), new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CAMERA_PERMISSION);
-                        } else {
-                            takePicture(imageCapture);
-                        }
+                capture.setOnClickListener(view -> {
+                    if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                        // Request storage permission
+                        ActivityCompat.requestPermissions(requireActivity(), new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CAMERA_PERMISSION);
+                    } else {
+                        capture.setClickable(false);
+                        takePicture(imageCapture);
                     }
                 });
 
-                toggleFlash.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        setFlashIcon(camera);
-                    }
-                });
+                toggleFlash.setOnClickListener(view -> setFlashIcon(camera));
 
                 preview.setSurfaceProvider(previewView.getSurfaceProvider());
             } catch (ExecutionException | InterruptedException e) {
@@ -159,23 +153,20 @@ public class ScanFragment extends Fragment {
             @Override
             public void onImageSaved(@NonNull ImageCapture.OutputFileResults outputFileResults) {
                 uploadImageToFirebase(file);
-                requireActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
+//                SharedViewModel sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
+//                sharedViewModel.setImageFile(file);
+                requireActivity().runOnUiThread(() -> {
 //                        Toast.makeText(requireContext(), "Image saved at: " + file.getPath(), Toast.LENGTH_SHORT).show();
-                    }
                 });
+                capture.setClickable(true);
                 startCamera(cameraFacing);
+
             }
 
             @Override
             public void onError(@NonNull ImageCaptureException exception) {
-                requireActivity().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(requireContext(), "Failed to save: " + exception.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                });
+                requireActivity().runOnUiThread(() -> Toast.makeText(requireContext(), "Failed to save: " + exception.getMessage(), Toast.LENGTH_SHORT).show());
+                capture.setClickable(true);
                 startCamera(cameraFacing);
             }
         });
@@ -190,12 +181,7 @@ public class ScanFragment extends Fragment {
                 toggleFlash.setImageResource(R.drawable.baseline_flash_on_24);
             }
         } else {
-            requireActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(requireContext(), "Flash is not available currently", Toast.LENGTH_SHORT).show();
-                }
-            });
+            requireActivity().runOnUiThread(() -> Toast.makeText(requireContext(), "Flash is not available currently", Toast.LENGTH_SHORT).show());
         }
     }
     private int aspectRatio(int width, int height) {
@@ -207,12 +193,7 @@ public class ScanFragment extends Fragment {
     }
 
     private void showToastOnUiThread(final String message) {
-        requireActivity().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show();
-            }
-        });
+        requireActivity().runOnUiThread(() -> Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show());
     }
 
     private void uploadImageToFirebase(File imageFile) {
