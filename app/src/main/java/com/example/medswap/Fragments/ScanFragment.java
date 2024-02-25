@@ -7,6 +7,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.hardware.camera2.params.BlackLevelPattern;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -40,13 +41,13 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.medswap.R;
 import com.example.medswap.REPO.SharedViewModel;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.io.File;
-import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 
@@ -70,7 +71,6 @@ public class ScanFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_scan, container, false);
         previewView = view.findViewById(R.id.cameraPreview);
         capture = view.findViewById(R.id.capture);
@@ -80,11 +80,15 @@ public class ScanFragment extends Fragment {
 
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             // Request camera permission
+            if (shouldShowRequestPermissionRationale(Manifest.permission.CAMERA)) {
+                // Explain to the user why you need the permission
+                // You might want to show a dialog explaining the need for camera permission
+            }
             ActivityCompat.requestPermissions(requireActivity(), new String[]{Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSION);
         } else {
             startCamera(cameraFacing);
         }
-        startCamera(cameraFacing);
+
         flipCamera.setOnClickListener(view12 -> {
             if (cameraFacing == CameraSelector.LENS_FACING_BACK) {
                 cameraFacing = CameraSelector.LENS_FACING_FRONT;
@@ -101,12 +105,7 @@ public class ScanFragment extends Fragment {
     }
 
     public void startCamera(int cameraFacing) {
-        int rotation;
-        if (previewView.getDisplay() != null) {
-            rotation = previewView.getDisplay().getRotation();
-        } else {
-            rotation = Surface.ROTATION_0;
-        }
+        int rotation = previewView.getDisplay() != null ? previewView.getDisplay().getRotation() : Surface.ROTATION_0;
         int aspectRatio = aspectRatio(previewView.getWidth(), previewView.getHeight());
         ListenableFuture<ProcessCameraProvider> listenableFuture = ProcessCameraProvider.getInstance(requireContext());
 
@@ -130,6 +129,10 @@ public class ScanFragment extends Fragment {
                 capture.setOnClickListener(view -> {
                     if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                         // Request storage permission
+                        if (shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                            // Explain to the user why you need the permission
+                            // You might want to show a dialog explaining the need for storage permission
+                        }
                         ActivityCompat.requestPermissions(requireActivity(), new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CAMERA_PERMISSION);
                     } else {
                         capture.setClickable(false);
@@ -153,14 +156,15 @@ public class ScanFragment extends Fragment {
             @Override
             public void onImageSaved(@NonNull ImageCapture.OutputFileResults outputFileResults) {
                 uploadImageToFirebase(file);
-//                SharedViewModel sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
-//                sharedViewModel.setImageFile(file);
-                requireActivity().runOnUiThread(() -> {
-//                        Toast.makeText(requireContext(), "Image saved at: " + file.getPath(), Toast.LENGTH_SHORT).show();
-                });
-                capture.setClickable(true);
-                startCamera(cameraFacing);
+                SharedViewModel sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
+                sharedViewModel.setImageFile(file);
 
+                // Display the image, for example, by navigating to a new fragment
+                displayImage();
+                // Enable capture button and restart the camera preview
+                capture.setClickable(true);
+
+                startCamera(cameraFacing);
             }
 
             @Override
@@ -171,19 +175,36 @@ public class ScanFragment extends Fragment {
             }
         });
     }
-    private void setFlashIcon(Camera camera) {
-        if (camera.getCameraInfo().hasFlashUnit()) {
-            if (camera.getCameraInfo().getTorchState().getValue() == 0) {
-                camera.getCameraControl().enableTorch(true);
-                toggleFlash.setImageResource(R.drawable.baseline_flash_off_24);
-            } else {
-                camera.getCameraControl().enableTorch(false);
-                toggleFlash.setImageResource(R.drawable.baseline_flash_on_24);
-            }
-        } else {
-            requireActivity().runOnUiThread(() -> Toast.makeText(requireContext(), "Flash is not available currently", Toast.LENGTH_SHORT).show());
-        }
+
+    private void displayImage() {
+        // Perform actions to display the image or navigate to a new fragment
+        // For example, you might want to show the image in an ImageView or navigate to a preview fragment
+        BlankFragment previewFragment = new BlankFragment();
+
+        requireActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container_home_screen, previewFragment)
+                .addToBackStack(null)
+                .commit();
     }
+
+
+    private void setFlashIcon(Camera camera) {
+        requireActivity().runOnUiThread(() -> {
+            if (camera.getCameraInfo().hasFlashUnit()) {
+                if (camera.getCameraInfo().getTorchState().getValue() == 0) {
+                    camera.getCameraControl().enableTorch(true);
+                    toggleFlash.setImageResource(R.drawable.baseline_flash_off_24);
+                } else {
+                    camera.getCameraControl().enableTorch(false);
+                    toggleFlash.setImageResource(R.drawable.baseline_flash_on_24);
+                }
+            } else {
+                Toast.makeText(requireContext(), "Flash is not available currently", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
     private int aspectRatio(int width, int height) {
         double previewRatio = (double) Math.max(width, height) / Math.min(width, height);
         if (Math.abs(previewRatio - 4.0 / 3.0) <= Math.abs(previewRatio - 16.0 / 9.0)) {
@@ -196,7 +217,7 @@ public class ScanFragment extends Fragment {
         requireActivity().runOnUiThread(() -> Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show());
     }
 
-    private void uploadImageToFirebase(File imageFile) {
+    private File uploadImageToFirebase(File imageFile) {
         requireActivity().runOnUiThread(() -> {
             if (progressBar != null) {
                 progressBar.setVisibility(View.VISIBLE);
@@ -220,6 +241,7 @@ public class ScanFragment extends Fragment {
                         if (imageFile.exists()) {
                             imageFile.delete();
                         }
+
                     })
                     .addOnFailureListener(exception -> {
                         exception.printStackTrace();
@@ -238,9 +260,9 @@ public class ScanFragment extends Fragment {
                 showToastOnUiThread("No internet connection");
             });
         }
+
+        return imageFile;
     }
-
-
 
     private void openGallery() {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
@@ -254,10 +276,17 @@ public class ScanFragment extends Fragment {
         if (requestCode == REQUEST_PICK_IMAGE && resultCode == RESULT_OK && data != null) {
             Uri selectedImageUri = data.getData();
 
-            if(isNetworkAvailable()){
+            if (isNetworkAvailable()) {
                 StorageReference storageRef = FirebaseStorage.getInstance().getReference();
                 String imageName = "images/" + System.currentTimeMillis() + ".jpg";
                 StorageReference imageRef = storageRef.child(imageName);
+
+                SharedViewModel sharedViewModel = new ViewModelProvider(requireActivity()).get(SharedViewModel.class);
+                File selectedImageFile = new File(selectedImageUri.getPath());
+                sharedViewModel.setImageFile(selectedImageFile);
+
+                // Display the image, for example, by navigating to a new fragment
+
 
                 ProgressDialog uploadDialog = new ProgressDialog(requireContext());
                 uploadDialog.setTitle("Uploading Image");
@@ -269,6 +298,7 @@ public class ScanFragment extends Fragment {
                         .addOnSuccessListener(taskSnapshot -> {
                             imageRef.getDownloadUrl().addOnSuccessListener(uri -> {
                                 uploadDialog.dismiss();
+                                displayImage();
                                 Toast.makeText(requireContext(), "Uploaded Successfully", Toast.LENGTH_SHORT).show();
                             });
                         })
@@ -286,11 +316,9 @@ public class ScanFragment extends Fragment {
                             uploadDialog.setProgress(currentProgress);
                             uploadDialog.setMessage("Uploading... " + currentProgress + "%");
                         });
-            }
-            else{
+            } else {
                 Toast.makeText(requireContext(), "No internet connection", Toast.LENGTH_SHORT).show();
             }
-
         }
     }
 
